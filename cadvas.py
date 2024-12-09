@@ -1018,7 +1018,11 @@ class Draw(AppShell.AppShell):
     #
     # circles are defined by coordinates:   (pc, r)
     #=======================================================================
-
+    '''
+    作用: 生成一条构造线（cline）并在画布上绘制它。
+    功能: 根据提供的构造线坐标，计算并生成一条线段。如果 rubber 为 1，则会创建一个临时的“橡皮线”来帮助用户定位。regen 表示是否需要重新生成构造线，通常在画布缩放或平移时调用该方法以刷新显示。
+    细节: 方法通过计算与画布边界交点来确定线段的显示范围。如果 rubber 为真，则绘制一条临时的线。否则，绘制一条永久的构造线，并将其添加到 cl_list 中，保持跟踪。
+    '''
     def cline_gen(self, cline, rubber=0, regen=False):
         '''Generate clines from coords (a,b,c) in ECS (mm) values.'''
         
@@ -1035,6 +1039,20 @@ class Draw(AppShell.AppShell):
                 if self.rubber:
                     self.canvas.coords(self.rubber, p1[0], p1[1], p2[0], p2[1])
                 else:
+                    '''
+                    使用 Tkinter 的 canvas.create_line 方法在画布上绘制一条线段
+                    参数解释：
+                    p1[0], p1[1]：定义线段的起始点坐标 (x1, y1)，其中 p1 是一个包含两个元素的序列（如列表或元组），p1[0] 是 x 坐标，p1[1] 是 y 坐标。
+                    
+                    p2[0], p2[1]：定义线段的终止点坐标 (x2, y2)，同样，p2 是一个包含两个元素的序列，p2[0] 是 x 坐标，p2[1] 是 y 坐标。
+                    
+                    fill=constrcolor：设置线段的颜色。constrcolor 是一个变量，表示线条的颜色，通常是一个有效的 Tkinter 颜色字符串（如 "red"、"#FF0000" 等）。
+                    
+                    tags='r'：为线段设置标签 'r'。标签允许你稍后通过这个标签来操作或查询画布上的对象。例如，你可以通过标签删除所有具有该标签的对象，或者更改它们的属性。
+                    
+                    返回值：
+                    self.rubber：返回绘制线段对象的 ID，这是一个唯一的标识符。你可以使用这个 ID 来操作该对象（例如修改坐标、颜色或删除它）。
+                    '''
                     self.rubber = self.canvas.create_line(p1[0], p1[1],
                                                           p2[0], p2[1],
                                                           fill=constrcolor,
@@ -1052,6 +1070,11 @@ class Draw(AppShell.AppShell):
                 if not regen:
                     self.cl_list.append(cline)
 
+    '''
+    作用: 删除所有现有的构造线并重新生成它们。
+    功能: 在画布缩放或平移后，所有构造线可能不再适合当前视图（比如线段被缩放至不可见或未延伸至画布边缘）。该方法通过删除所有现有的构造线并重新生成它们来解决这个问题。
+    细节: 它遍历所有当前的构造线，删除它们并从原始数据 cl_list 中重新生成。
+    '''
     def regen_all_cl(self, event=None):
         """Delete existing clines, remove them from self.curr, and regenerate
 
@@ -1068,6 +1091,10 @@ class Draw(AppShell.AppShell):
         for cline in self.cl_list:
             self.cline_gen(cline, regen=True)
 
+    '''
+    作用: 创建一条水平的构造线。
+    功能: 通过用户选择的点或输入的 y 值来创建一条水平线。可以从点堆栈中提取点，或者用户通过输入提供 y 坐标。
+    '''
     def hcl(self, pnt=None):
         """Create horizontal construction line from one point or y value."""
 
@@ -1090,6 +1117,11 @@ class Draw(AppShell.AppShell):
             cline = angled_cline(p, 0)
             self.cline_gen(cline)
 
+    '''
+    作用: 创建一条垂直的构造线。
+    功能: 通过用户选择的点或输入的 x 值来创建一条垂直线。方法逻辑与 hcl 类似，但生成的线是与 y 轴平行的。
+    细节: 如果用户提供了一个点或输入了 x 坐标，方法将使用该值生成一条垂直线。同样支持“橡皮线”预览，用户确认后添加到构造线列表 cl_list 中。
+    '''
     def vcl(self, pnt=None):
         """Create vertical construction line from one point or x value."""
 
@@ -1212,6 +1244,9 @@ class Draw(AppShell.AppShell):
             cline = ang_bisector(p0, p1, p2, f)
             self.cline_gen(cline)
 
+    '''
+    作用: 在指定点创建一对水平和垂直构造线。
+    '''
     def lbcl(self, pnt=None):
         """Create a linear bisector construction line."""
         
@@ -1248,6 +1283,9 @@ class Draw(AppShell.AppShell):
             newline = perp_line(baseline, p0)
             self.cline_gen(newline)
 
+    '''
+    作用: 通过一个点创建一条指定角度的构造线。
+    '''
     def parcl(self, pnt=None):
         """Create parallel clines in one of two modes:
 
@@ -1313,6 +1351,9 @@ class Draw(AppShell.AppShell):
                 newline = para_line(baseline, p)
                 self.cline_gen(newline)
 
+    '''
+    作用: 根据参考线生成具有指定角度偏移的新构造线。
+    '''
     def perpcl(self, pnt=None):
         """Create a perpendicular cline through a selected point."""
         
@@ -1345,6 +1386,9 @@ class Draw(AppShell.AppShell):
                 newline = perp_line(baseline, p)
                 self.cline_gen(newline, rubber=1)
 
+    '''
+    作用: 创建一条角平分线构造线。
+    '''
     def cltan1(self, p1=None):
         '''Create a construction line through a point, tangent to a circle.'''
         
@@ -1367,6 +1411,9 @@ class Draw(AppShell.AppShell):
                 self.cline_gen(cline1)
                 self.cline_gen(cline2)
 
+    '''
+    创建一条切于两个圆的构造线，要求选择两个圆，计算它们的公共切线并生成构造线。
+    '''
     def cltan2(self, p1=None):
         '''Create a construction line tangent to 2 circles.'''
         
@@ -1388,6 +1435,9 @@ class Draw(AppShell.AppShell):
                 cline = cnvrt_2pts_to_coef(p1, p2)
                 self.cline_gen(cline)
 
+    '''
+    基于一个圆对象（CC）创建并保存构造圆到当前对象集合。
+    '''
     def ccirc_gen(self, cc, tag='c'):
         """Create constr circle from a CC object. Save to self.curr."""
 
@@ -1396,12 +1446,17 @@ class Draw(AppShell.AppShell):
         self.curr[handle] = cc
         self.canvas.tag_lower(handle)
 
+    '''
+    创建一个构造圆，该圆由圆心和一个周边点或半径定义。
+    '''
     def ccirc(self, p1=None):
         '''Create a construction circle from center point and
         perimeter point or radius.'''
         
         self.circ(p1=p1, constr=1)
-
+    '''
+    创建一个同心构造圆，基于现有圆及指定的相对半径生成。
+    '''
     def cccirc(self, p1=None):
         '''Create a construction circle concentric to an existing circle,
         at a "relative" radius.'''
@@ -1434,6 +1489,9 @@ class Draw(AppShell.AppShell):
             r = p2p_dist(pc, p)
             self.circ_builder((pc, r), constr=1)
 
+    '''
+    使用三点定义一个构造圆，通过三点计算圆心和半径并生成该圆。
+    '''
     def cc3p(self, p3=None):
         """Create a constr circle from 3 pts on circle."""
         
@@ -1465,7 +1523,9 @@ class Draw(AppShell.AppShell):
     # lines are defined by coordinates:         (p1, p2)
     #
     #=======================================================================
-
+    '''
+    在画布上绘制一段直线段（低级方法），根据给定的两个点及颜色返回线段的唯一标识。
+    '''
     def line_draw(self, coords, color, arrow=None, tag='g'):
         """Create and display line segment between two pts. Return ID.
 
@@ -1479,6 +1539,9 @@ class Draw(AppShell.AppShell):
                                        fill=color, tags=tag, arrow=arrow)
         return tkid
 
+    '''
+    基于几何线对象（GL）生成线段，并将其存储到当前对象集合中。
+    '''
     def gline_gen(self, gl):
         """Create line segment from gl object. Store {ID: obj} in self.curr.
 
@@ -1487,7 +1550,10 @@ class Draw(AppShell.AppShell):
         coords, color = gl.get_attribs()
         tkid = self.line_draw(coords, color)
         self.curr[tkid] = gl
-        
+
+    '''
+    创建由两个点定义的线段，支持橡皮筋模式（实时调整显示的动态线段）。
+    '''
     def line(self, p1=None):
         '''Create line segment between 2 points. Enable 'rubber line' mode'''
         
@@ -1529,6 +1595,9 @@ class Draw(AppShell.AppShell):
                 self.canvas.delete(self.rtext)
                 self.rtext = None
 
+    '''
+    创建一个由多个线段连接而成的多边形，支持连续绘制线段并自动闭合多边形。
+    '''
     def poly(self, p1=None):
         '''Create chain of line segments, enabling 'rubber line' mode.'''
         
@@ -1547,7 +1616,23 @@ class Draw(AppShell.AppShell):
             self.line()     # This will pop 2 points off stack
             if not same_pt_p(self.poly_start_pt, lastpt):
                 self.pt_stack.append(lastpt)
+
+    '''
+    矩形绘制：rect()
+    功能
+    根据对角线的两个点绘制矩形。
     
+    主要逻辑
+    初始状态：提示用户选择第一个点。
+    选择一个点后：等待用户选择第二个点（p2）。
+    绘制矩形：
+    利用 Tkinter 的 create_rectangle 方法在画布上绘制矩形。
+    如果是实时拖拽（橡皮筋效果），更新矩形坐标。
+    完成绘制：
+    从点栈中取出两个点。
+    根据四个顶点计算矩形边的坐标，调用 gline_gen() 方法生成直线几何对象。
+    删除橡皮筋效果的矩形。
+    '''
     def rect(self, p2=None):
         '''Generate a rectangle from 2 diagonally opposite corners.'''
         
@@ -1562,8 +1647,22 @@ class Draw(AppShell.AppShell):
             x1, y1 = self.ep2cp(p1)
             x2, y2 = p2
             if self.rubber:
+                '''
+                coords 方法:
+                动态更新指定图形对象（通过 self.rubber 引用）的坐标。
+                使用新的坐标 (x1, y1, x2, y2) 更新矩形位置和大小。
+                '''
                 self.canvas.coords(self.rubber, x1, y1, x2, y2)
             else:
+                '''
+                create_rectangle 方法:
+                在 canvas 上绘制一个矩形。
+                参数解析：
+                x1, y1, x2, y2: 矩形的对角线两个端点的坐标。
+                outline=rc: 矩形的边框颜色，由变量 rc 决定。
+                tags='r': 给矩形设置标签，方便后续操作。
+                返回值 self.rubber 是该矩形的唯一 ID，后续可以通过该 ID 操作矩形
+                '''
                 self.rubber = self.canvas.create_rectangle(x1, y1, x2, y2,
                                                            outline=rc,
                                                            tags='r')
@@ -1588,7 +1687,20 @@ class Draw(AppShell.AppShell):
     # geometry circle parameters are stored in GC objects.
     # circles are defined by coordinates:       (pc, r)
     #=======================================================================
-
+    '''
+    圆绘制：circ() 和相关方法
+    功能
+    通过中心点和半径绘制圆。
+    
+    主要逻辑
+    中心点选择：提示用户指定圆心。
+    半径确定：
+    通过鼠标选择圆上一点，计算与圆心的距离作为半径。
+    或者直接输入半径值。
+    绘制过程：
+    调用 circ_builder()，区分橡皮筋效果和实际绘制。
+    调用 circ_draw() 方法利用 Tkinter 的 create_oval 画圆。
+    '''
     def circ_draw(self, coords, color, tag):
         """Draw a circle on the canvas and return the tkid handle.
 
@@ -1598,6 +1710,23 @@ class Draw(AppShell.AppShell):
         ctr, rad = coords
         x, y = self.ep2cp(ctr)
         r = self.canvas.w2c_dx(rad)
+        '''
+        参数解释：
+        x, y：椭圆或圆形的中心点坐标。
+        
+        r：半径，用来计算椭圆或圆形的边界。
+        
+        (x-r, y-r) 是椭圆或圆形的左上角坐标。
+        (x+r, y+r) 是椭圆或圆形的右下角坐标。
+        outline=color：定义椭圆的边框颜色。color 是一个变量，表示颜色，可以是任何 Tkinter 支持的颜色表示方式（例如："red"、"#FF0000" 等）。
+        
+        tags=tag：给这个椭圆或圆形设置一个标签（tag），这使得后续可以使用这个标签来引用、操作或查找此图形。
+        
+        返回值：
+        handle：是该椭圆或圆形的唯一 ID，返回的 handle 可以用于后续操作（如更新位置、删除等）。
+        画椭圆的原理
+        create_oval 方法通过指定的四个坐标（x-r, y-r, x+r, y+r）定义了一个矩形，椭圆则被绘制在这个矩形内部。若长宽相等（即 r 相等），则形成一个圆形；若长宽不同，则形成椭圆。
+        '''
         handle = self.canvas.create_oval(x-r, y-r, x+r, y+r,
                                          outline=color,
                                          tags=tag)
@@ -1698,6 +1827,23 @@ class Draw(AppShell.AppShell):
                 self.canvas.coords(self.rubber, x1, y1, x2, y2,)
                 self.canvas.itemconfig(self.rubber, start=a0, extent=ext)
             else:
+                '''
+                使用 Tkinter 的 canvas.create_arc 方法在画布上绘制一个弧形
+                参数解释：
+                x1, y1, x2, y2：定义了绘制弧形的矩形边界的四个坐标。矩形的左上角是 (x1, y1)，右下角是 (x2, y2)，弧形将被绘制在这个矩形区域内。
+                
+                弧形的圆心会被这个矩形的中心所确定。
+                矩形的对角线将决定弧形的弯曲程度。
+                start=a0：弧形的起始角度（以度为单位）。a0 是变量，表示从矩形的右侧水平线起算的起始角度（0 度表示水平右，顺时针为正方向）。
+                
+                extent=ext：弧形的角度范围（以度为单位）。ext 是变量，表示弧形的范围，通常是一个正数，决定弧形的长度。负值会导致弧形逆时针方向绘制。
+                
+                style='arc'：指定图形的类型。这里的 'arc' 表示绘制一个弧形。如果你需要绘制一个填充的扇形，可以使用 style='pieslice'。
+                
+                tags=tag：为弧形设置标签 tag，使得后续可以通过该标签引用或操作该弧形。
+                
+                outline=color：设置弧形的边框颜色。color 是一个变量，可以是任何有效的 Tkinter 颜色表示（例如："red"、"#FF0000" 等）。
+                '''
                 self.rubber = self.canvas.create_arc(x1, y1, x2, y2,
                                                      start=a0, extent=ext,
                                                      style='arc', tags=tag,
