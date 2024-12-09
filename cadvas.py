@@ -51,203 +51,206 @@ rubbercolor = 'yellow'  # color of (temporary) rubber elements
 #===========================================================================
 
 def intersection(cline1, cline2):
-    """Return intersection (x,y) of 2 clines expressed as (a,b,c) coeff."""
-    a,b,c = cline1
-    d,e,f = cline2
-    i = b*f-c*e
-    j = c*d-a*f
-    k = a*e-b*d
+    """返回两条直线 (a,b,c) 形式的交点 (x,y)。"""
+    a, b, c = cline1
+    d, e, f = cline2
+    i = b*f - c*e
+    j = c*d - a*f
+    k = a*e - b*d
     if k:
-        return (i/k, j/k)
+        return (i/k, j/k)  # 如果 k != 0，返回交点坐标 (i/k, j/k)
     else:
-        return None
+        return None  # 如果 k == 0，说明两条直线平行或重合，返回 None
 
 def cnvrt_2pts_to_coef(pt1, pt2):
-    """Return (a,b,c) coefficients of cline defined by 2 (x,y) pts."""
+    """通过两个点 (x1, y1) 和 (x2, y2) 返回直线的 (a, b, c) 系数。"""
     x1, y1 = pt1
     x2, y2 = pt2
-    a = y2 - y1
-    b = x1 - x2
-    c = x2*y1-x1*y2
+    a = y2 - y1  # 直线的斜率 a
+    b = x1 - x2  # 直线的斜率 b
+    c = x2*y1 - x1*y2  # 直线的截距 c
     return (a, b, c)
 
 def proj_pt_on_line(cline, pt):
-    """Return point which is the projection of pt on cline."""
+    """返回点 pt 在直线 cline 上的投影点。"""
     a, b, c = cline
     x, y = pt
-    denom = a**2 + b**2
+    denom = a**2 + b**2  # 计算分母
     if not denom:
-        return pt
-    xp = (b**2*x - a*b*y -a*c)/denom
-    yp = (a**2*y - a*b*x -b*c)/denom
+        return pt  # 如果分母为 0，说明直线为垂直线，直接返回原点
+    xp = (b**2*x - a*b*y - a*c) / denom  # 计算投影点 x 坐标
+    yp = (a**2*y - a*b*x - b*c) / denom  # 计算投影点 y 坐标
     return (xp, yp)
 
 def pnt_in_box_p(pnt, box):
-    '''Point in box predicate: Return True if pnt is in box.'''
+    '''点是否在矩形框内：如果点 pnt 在 box 中，返回 True。'''
     x, y = pnt
-    x1, y1, x2, y2 = box
-    if x1<x<x2 and y1<y<y2: return True
-    else: return False
+    x1, y1, x2, y2 = box  # box 为矩形框的左下角 (x1, y1) 和右上角 (x2, y2)
+    if x1 < x < x2 and y1 < y < y2:
+        return True  # 如果点在框内，返回 True
+    else:
+        return False  # 否则返回 False
 
-def midpoint(p1, p2, f=.5):
-    """Return point part way (f=.5 by def) between points p1 and p2."""
-    return (((p2[0]-p1[0])*f)+p1[0], ((p2[1]-p1[1])*f)+p1[1])
+def midpoint(p1, p2, f=0.5):
+    """返回点 p1 和 p2 之间按比例 f （默认为 0.5，即中点）的位置。"""
+    return (((p2[0] - p1[0]) * f) + p1[0], ((p2[1] - p1[1]) * f) + p1[1])
 
 def p2p_dist(p1, p2):
-    """Return the distance between two points"""
+    """返回两个点 p1 和 p2 之间的欧几里得距离。"""
     x, y = p1
     u, v = p2
-    return math.sqrt((x-u)**2 + (y-v)**2)
+    return math.sqrt((x - u)**2 + (y - v)**2)
 
 def p2p_angle(p0, p1):
-    """Return angle (degrees) from p0 to p1."""
-    return math.atan2(p1[1]-p0[1], p1[0]-p0[0])*180/math.pi
+    """返回从 p0 到 p1 的角度（单位：度）。"""
+    return math.atan2(p1[1] - p0[1], p1[0] - p0[0]) * 180 / math.pi
 
 def add_pt(p0, p1):
-    return (p0[0]+p1[0], p0[1]+p1[1])
+    """返回两个点 p0 和 p1 的坐标和。"""
+    return (p0[0] + p1[0], p0[1] + p1[1])
 
 def sub_pt(p0, p1):
-    return (p0[0]-p1[0], p0[1]-p1[1])
+    """返回点 p0 和 p1 的差值。"""
+    return (p0[0] - p1[0], p0[1] - p1[1])
 
 def line_circ_inters(x1, y1, x2, y2, xc, yc, r):
-    '''Return list of intersection pts of line defined by pts x1,y1 and x2,y2
-    and circle (cntr xc,yc and radius r).
-    Uses algorithm from Paul Bourke's web page.'''
+    '''返回由两个点 (x1, y1) 和 (x2, y2) 定义的直线与圆心 (xc, yc) 和半径 r 的圆的交点。'''
     intpnts = []
     num = (xc - x1)*(x2 - x1) + (yc - y1)*(y2 - y1)
     denom = (x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)
     if denom == 0:
-        return
+        return []
     u = num / denom
-    xp = x1 + u*(x2-x1)
-    yp = y1 + u*(y2-y1)
+    xp = x1 + u * (x2 - x1)  # 交点 x 坐标
+    yp = y1 + u * (y2 - y1)  # 交点 y 坐标
 
+    # 计算圆和直线的交点
     a = (x2 - x1)**2 + (y2 - y1)**2
-    b = 2*((x2-x1)*(x1-xc) + (y2-y1)*(y1-yc))
-    c = xc**2+yc**2+x1**2+y1**2-2*(xc*x1+yc*y1)-r**2
+    b = 2 * ((x2 - x1) * (x1 - xc) + (y2 - y1) * (y1 - yc))
+    c = xc**2 + yc**2 + x1**2 + y1**2 - 2 * (xc * x1 + yc * y1) - r**2
     q = b**2 - 4*a*c
     if q == 0:
         intpnts.append((xp, yp))
-    elif q:
-        u1 = (-b+math.sqrt(abs(q)))/(2*a)
-        u2 = (-b-math.sqrt(abs(q)))/(2*a)
-        intpnts.append(((x1 + u1*(x2-x1)), (y1 + u1*(y2-y1))))
-        intpnts.append(((x1 + u2*(x2-x1)), (y1 + u2*(y2-y1))))
+    elif q > 0:
+        u1 = (-b + math.sqrt(abs(q))) / (2 * a)
+        u2 = (-b - math.sqrt(abs(q))) / (2 * a)
+        intpnts.append(((x1 + u1 * (x2 - x1)), (y1 + u1 * (y2 - y1))))
+        intpnts.append(((x1 + u2 * (x2 - x1)), (y1 + u2 * (y2 - y1))))
     return intpnts
 
 def circ_circ_inters(x1, y1, r1, x2, y2, r2):
-    '''Return list of intersection pts of 2 circles.
-    Uses algorithm from Robert S. Wilson's web page.'''
+    '''返回两个圆的交点。'''
     pts = []
-    D = (x2-x1)**2 + (y2-y1)**2
+    D = (x2 - x1)**2 + (y2 - y1)**2  # 计算两圆心之间的距离
     if not D:
-        return pts  # circles have same cntr; no intersection
+        return pts  # 如果两圆心重合，返回空列表
     try:
-        q = math.sqrt(abs(((r1+r2)**2-D)*(D-(r2-r1)**2)))
+        q = math.sqrt(abs(((r1 + r2)**2 - D) * (D - (r2 - r1)**2)))
     except:
-        return pts  # circles don't interect
-    pts = [((x2+x1)/2+(x2-x1)*(r1**2-r2**2)/(2*D)+(y2-y1)*q/(2*D),
-            (y2+y1)/2+(y2-y1)*(r1**2-r2**2)/(2*D)-(x2-x1)*q/(2*D)),
-           ((x2+x1)/2+(x2-x1)*(r1**2-r2**2)/(2*D)-(y2-y1)*q/(2*D),
-            (y2+y1)/2+(y2-y1)*(r1**2-r2**2)/(2*D)+(x2-x1)*q/(2*D))]
+        return pts  # 如果两圆不相交，返回空列表
+    pts = [((x2 + x1) / 2 + (x2 - x1) * (r1**2 - r2**2) / (2 * D) + (y2 - y1) * q / (2 * D),
+            (y2 + y1) / 2 + (y2 - y1) * (r1**2 - r2**2) / (2 * D) - (x2 - x1) * q / (2 * D)),
+           ((x2 + x1) / 2 + (x2 - x1) * (r1**2 - r2**2) / (2 * D) - (y2 - y1) * q / (2 * D),
+            (y2 + y1) / 2 + (y2 - y1) * (r1**2 - r2**2) / (2 * D) + (x2 - x1) * q / (2 * D))]
     if same_pt_p(pts[0], pts[1]):
-        pts.pop()   # circles are tangent
+        pts.pop()  # 如果两圆相切，删除重复的交点
     return pts
 
 def same_pt_p(p1, p2):
-    '''Return True if p1 and p2 are within 1e-10 of each other.'''
+    '''返回 True 如果 p1 和 p2 之间的距离小于 1e-6。'''
     if p2p_dist(p1, p2) < 1e-6:
         return True
     else:
         return False
 
 def cline_box_intrsctn(cline, box):
-    """Return tuple of pts where line intersects edges of box."""
-    x0, y0, x1, y1 = box
-    pts = []
-    segments = [((x0, y0), (x1, y0)),
+    """返回线与矩形框的交点坐标，包含所有交点。"""
+    x0, y0, x1, y1 = box  # 矩形框的四个角坐标
+    pts = []  # 用于存储交点的列表
+    segments = [((x0, y0), (x1, y0)),  # 矩形的四条边
                 ((x1, y0), (x1, y1)),
                 ((x1, y1), (x0, y1)),
                 ((x0, y1), (x0, y0))]
+
+    # 遍历每一条边，找出交点
     for seg in segments:
         pt = intersection(cline, cnvrt_2pts_to_coef(seg[0], seg[1]))
         if pt:
+            # 判断交点是否在线段内
             if p2p_dist(pt, seg[0]) <= p2p_dist(seg[0], seg[1]) and \
                p2p_dist(pt, seg[1]) <= p2p_dist(seg[0], seg[1]):
+                # 如果交点不重复，则加入到交点列表中
                 if pt not in pts:
                     pts.append(pt)
-    return tuple(pts)
+    return tuple(pts)  # 返回交点的元组
 
 def para_line(cline, pt):
-    """Return coeff of newline thru pt and parallel to cline."""
-    a, b, c = cline
-    x, y = pt
-    cnew = -(a*x + b*y)
-    return (a, b, cnew)
+    """返回通过点pt并与直线cline平行的直线的系数。"""
+    a, b, c = cline  # 获取原直线的系数
+    x, y = pt  # 获取给定点坐标
+    cnew = -(a * x + b * y)  # 计算新直线的常数项
+    return (a, b, cnew)  # 返回新直线的系数
 
 def para_lines(cline, d):
-    """Return 2 parallel lines straddling line, offset d."""
-    a, b, c = cline
-    c1 = math.sqrt(a**2 + b**2)*d
-    cline1 = (a, b, c + c1)
-    cline2 = (a, b, c - c1)
-    return (cline1, cline2)
+    """返回两条平行于cline的直线，偏移量为d。"""
+    a, b, c = cline  # 获取原直线的系数
+    c1 = math.sqrt(a**2 + b**2) * d  # 计算偏移量
+    cline1 = (a, b, c + c1)  # 第一条平行直线
+    cline2 = (a, b, c - c1)  # 第二条平行直线
+    return (cline1, cline2)  # 返回两条平行直线
 
 def perp_line(cline, pt):
-    """Return coeff of newline thru pt and perpend to cline."""
-    a, b, c = cline
-    x, y = pt
-    cnew = a*y - b*x
-    return (b, -a, cnew)
+    """返回通过点pt且垂直于直线cline的直线的系数。"""
+    a, b, c = cline  # 获取原直线的系数
+    x, y = pt  # 获取给定点坐标
+    cnew = a * y - b * x  # 计算新直线的常数项
+    return (b, -a, cnew)  # 返回新直线的系数（垂直线）
 
 def closer(p0, p1, p2):
-    """Return closer of p1 or p2 to point p0."""
-    d1 = (p1[0] - p0[0])**2 + (p1[1] - p0[1])**2
-    d2 = (p2[0] - p0[0])**2 + (p2[1] - p0[1])**2
-    if d1 < d2: return p1
-    else: return p2
+    """返回p1或p2中离p0更近的点。"""
+    d1 = (p1[0] - p0[0])**2 + (p1[1] - p0[1])**2  # 计算p0到p1的距离平方
+    d2 = (p2[0] - p0[0])**2 + (p2[1] - p0[1])**2  # 计算p0到p2的距离平方
+    if d1 < d2: return p1  # 如果p1更近，返回p1
+    else: return p2  # 否则返回p2
 
 def farther(p0, p1, p2):
-    """Return farther of p1 or p2 from point p0."""
-    d1 = (p1[0] - p0[0])**2 + (p1[1] - p0[1])**2
-    d2 = (p2[0] - p0[0])**2 + (p2[1] - p0[1])**2
-    if d1 > d2: return p1
-    else: return p2
+    """返回p1或p2中离p0更远的点。"""
+    d1 = (p1[0] - p0[0])**2 + (p1[1] - p0[1])**2  # 计算p0到p1的距离平方
+    d2 = (p2[0] - p0[0])**2 + (p2[1] - p0[1])**2  # 计算p0到p2的距离平方
+    if d1 > d2: return p1  # 如果p1更远，返回p1
+    else: return p2  # 否则返回p2
 
 def find_fillet_pts(r, commonpt, end1, end2):
-    """Return ctr of fillet (radius r) and tangent pts for corner
-    defined by a common pt, and two adjacent corner pts."""
-    line1 = cnvrt_2pts_to_coef(commonpt, end1)
-    line2 = cnvrt_2pts_to_coef(commonpt, end2)
-    # find 'interior' clines
-    cl1a, cl1b = para_lines(line1, r)
-    p2a = proj_pt_on_line(cl1a, end2)
+    """返回圆角（半径r）的圆心和切线点，给定两个相邻的角点和它们的公共点。"""
+    line1 = cnvrt_2pts_to_coef(commonpt, end1)  # 第一个边的直线系数
+    line2 = cnvrt_2pts_to_coef(commonpt, end2)  # 第二个边的直线系数
+    cl1a, cl1b = para_lines(line1, r)  # 获取平行线
+    p2a = proj_pt_on_line(cl1a, end2)  # 投影点
     p2b = proj_pt_on_line(cl1b, end2)
-    da = p2p_dist(p2a, end2)
+    da = p2p_dist(p2a, end2)  # 计算距离
     db = p2p_dist(p2b, end2)
-    if da <= db: cl1 = cl1a
-    else: cl1 = cl1b
-    cl2a, cl2b = para_lines(line2, r)
+    cl1 = cl1a if da <= db else cl1b  # 选择距离更近的平行线
+
+    cl2a, cl2b = para_lines(line2, r)  # 获取第二条平行线
     p1a = proj_pt_on_line(cl2a, end1)
     p1b = proj_pt_on_line(cl2b, end1)
     da = p2p_dist(p1a, end1)
     db = p2p_dist(p1b, end1)
-    if da <= db: cl2 = cl2a
-    else: cl2 = cl2b
-    pc = intersection(cl1, cl2)
-    p1 = proj_pt_on_line(line1, pc)
-    p2 = proj_pt_on_line(line2, pc)
-    return (pc, p1, p2)
+    cl2 = cl2a if da <= db else cl2b  # 选择距离更近的平行线
+
+    pc = intersection(cl1, cl2)  # 找到两条平行线的交点
+    p1 = proj_pt_on_line(line1, pc)  # 在第一条边上找到投影点
+    p2 = proj_pt_on_line(line2, pc)  # 在第二条边上找到投影点
+    return (pc, p1, p2)  # 返回圆心和切线点
 
 def find_common_pt(apair, bpair):
-    """Return (common pt, other pt from a, other pt from b), where a and b
-    are coordinate pt pairs in (p1, p2) format."""
+    """返回两个点对的公共点和它们各自的其他点。"""
     p0, p1 = apair
     p2, p3 = bpair
-    if same_pt_p(p0, p2):
-        cp = p0     # common pt
-        opa = p1    # other pt a
-        opb = p3    # other pt b
+    if same_pt_p(p0, p2):  # 如果p0和p2是相同点
+        cp = p0  # 公共点是p0
+        opa = p1  # a的其他点是p1
+        opb = p3  # b的其他点是p3
     elif same_pt_p(p0, p3):
         cp = p0
         opa = p1
@@ -262,33 +265,35 @@ def find_common_pt(apair, bpair):
         opb = p2
     else:
         return
-    return (cp, opa, opb)
+    return (cp, opa, opb)  # 返回公共点和其他点
 
 def cr_from_3p(p1, p2, p3):
-    """Return ctr pt and radius of circle on which 3 pts reside.
-    From Paul Bourke's web page."""
-    chord1 = cnvrt_2pts_to_coef(p1, p2)
-    chord2 = cnvrt_2pts_to_coef(p2, p3)
-    radial_line1 = perp_line(chord1, midpoint(p1, p2))
+    """返回包含三点的圆的圆心和半径，来源于Paul Bourke的算法。"""
+    chord1 = cnvrt_2pts_to_coef(p1, p2)  # 计算第一个弦的直线系数
+    chord2 = cnvrt_2pts_to_coef(p2, p3)  # 计算第二个弦的直线系数
+    radial_line1 = perp_line(chord1, midpoint(p1, p2))  # 求弦的垂直线
     radial_line2 = perp_line(chord2, midpoint(p2, p3))
-    ctr = intersection(radial_line1, radial_line2)
+    ctr = intersection(radial_line1, radial_line2)  # 交点即圆心
     if ctr:
-        radius =  p2p_dist(p1, ctr)
-        return (ctr, radius)
+        radius = p2p_dist(p1, ctr)  # 计算半径
+        return (ctr, radius)  # 返回圆心和半径
 
 def extendline(p0, p1, d):
-    """Return point which lies on extension of line segment p0-p1,
-    beyond p1 by distance d."""
+    """返回沿着p0-p1方向延伸d距离的点。"""
     pts = line_circ_inters(p0[0], p0[1], p1[0], p1[1], p1[0], p1[1], d)
     if pts:
-        return farther(p0, pts[0], pts[1])
+        return farther(p0, pts[0], pts[1])  # 返回距离更远的点
     else:
         return
 
 def shortenline(p0, p1, d):
     """Return point which lies on line segment p0-p1,
     short of p1 by distance d."""
+    # 调用 line_circ_inters 函数，计算通过 p0 和 p1 的线段与圆的交点
+    # 圆心为 p1，半径为 p1 到 p0 的距离，再减去距离 d
     pts = line_circ_inters(p0[0], p0[1], p1[0], p1[1], p1[0], p1[1], d)
+
+    # 如果找到了交点，则返回距离 p0 最近的点
     if pts:
         return closer(p0, pts[0], pts[1])
     else:
@@ -296,62 +301,90 @@ def shortenline(p0, p1, d):
 
 def line_tan_to_circ(circ, p):
     """Return tan pts on circ of line through p."""
-    c, r = circ
-    d = p2p_dist(c, p)
-    ang0 = p2p_angle(c, p)*math.pi/180
-    theta = math.asin(r/d)
-    ang1 = ang0+math.pi/2-theta
-    ang2 = ang0-math.pi/2+theta
-    p1 = (c[0]+(r*math.cos(ang1)), c[1]+(r*math.sin(ang1)))
-    p2 = (c[0]+(r*math.cos(ang2)), c[1]+(r*math.sin(ang2)))
+    c, r = circ  # 圆心 c 和半径 r
+    d = p2p_dist(c, p)  # 计算点 p 到圆心 c 的距离
+    ang0 = p2p_angle(c, p) * math.pi / 180  # 计算从圆心到点 p 的角度，单位转为弧度
+    theta = math.asin(r / d)  # 计算从圆心到点 p 形成的角度与切线之间的夹角
+    ang1 = ang0 + math.pi / 2 - theta  # 计算第一个切点的角度
+    ang2 = ang0 - math.pi / 2 + theta  # 计算第二个切点的角度
+
+    # 通过角度计算切点坐标
+    p1 = (c[0] + (r * math.cos(ang1)), c[1] + (r * math.sin(ang1)))
+    p2 = (c[0] + (r * math.cos(ang2)), c[1] + (r * math.sin(ang2)))
+
     return (p1, p2)
 
 def line_tan_to_2circs(circ1, circ2):
     """Return tangent pts on line tangent to 2 circles.
     Order of circle picks determines which tangent line."""
-    c1, r1 = circ1
-    c2, r2 = circ2
-    d = p2p_dist(c1, c2)    # distance between centers
-    ang_loc = p2p_angle(c2, c1)*math.pi/180  # angle of line of centers
-    f = (r2/r1-1)/d # reciprocal dist from c1 to intersection of loc & tan line
-    theta = math.asin(r1*f)    # angle between loc and tangent line
-    ang1 = (ang_loc + math.pi/2 - theta)
-    ang2 = (ang_loc - math.pi/2 + theta)
-    p1 = (c1[0]+(r1*math.cos(ang1)), c1[1]+(r1*math.sin(ang1)))
-    p2 = (c2[0]+(r2*math.cos(ang1)), c2[1]+(r2*math.sin(ang1)))
+    c1, r1 = circ1  # 第一个圆心 c1 和半径 r1
+    c2, r2 = circ2  # 第二个圆心 c2 和半径 r2
+
+    # 计算两个圆心之间的距离
+    d = p2p_dist(c1, c2)
+
+    # 计算两个圆心连线的角度
+    ang_loc = p2p_angle(c2, c1) * math.pi / 180
+    f = (r2 / r1 - 1) / d  # 计算与切线交点的倒数距离
+    theta = math.asin(r1 * f)  # 计算切线与连接两圆心的线之间的角度
+
+    # 计算两条切线的角度
+    ang1 = ang_loc + math.pi / 2 - theta
+    ang2 = ang_loc - math.pi / 2 + theta
+
+    # 根据角度计算两个圆的切点坐标
+    p1 = (c1[0] + (r1 * math.cos(ang1)), c1[1] + (r1 * math.sin(ang1)))
+    p2 = (c2[0] + (r2 * math.cos(ang1)), c2[1] + (r2 * math.sin(ang1)))
+
     return (p1, p2)
 
 def angled_cline(pt, angle):
     """Return cline through pt at angle (degrees)"""
+    # 将角度从度转为弧度
     ang = angle * math.pi / 180
+    # 计算该角度方向的单位向量
     dx = math.cos(ang)
     dy = math.sin(ang)
-    p2 = (pt[0]+dx, pt[1]+dy)
+    # 通过单位向量计算第二个点 p2
+    p2 = (pt[0] + dx, pt[1] + dy)
+
+    # 返回通过 pt 和 p2 的直线方程系数
     cline = cnvrt_2pts_to_coef(pt, p2)
     return cline
 
 def ang_bisector(p0, p1, p2, f=0.5):
     """Return cline coefficients of line through vertex p0, factor=f
     between p1 and p2."""
-    ang1 = math.atan2(p1[1]-p0[1], p1[0]-p0[0])
-    ang2 = math.atan2(p2[1]-p0[1], p2[0]-p0[0])
+    # 计算从 p0 到 p1 和从 p0 到 p2 的角度
+    ang1 = math.atan2(p1[1] - p0[1], p1[0] - p0[0])
+    ang2 = math.atan2(p2[1] - p0[1], p2[0] - p0[0])
+
+    # 计算角度差
     deltang = ang2 - ang1
-    ang3 = (f * deltang + ang1)*180/math.pi
+    # 计算角平分线的角度，f 用于调整角度分配
+    ang3 = (f * deltang + ang1) * 180 / math.pi
+
+    # 返回角平分线的直线方程
     return angled_cline(p0, ang3)
 
 
 def pt_on_RHS_p(pt, p0, p1):
     """Return True if pt is on right hand side going from p0 to p1."""
+    # 计算线段 p0-p1 的角度
     angline = p2p_angle(p0, p1)
+    # 计算点 pt 相对 p0 的角度
     angpt = p2p_angle(p0, pt)
+
     if angline >= 0:
-        if angline > angpt > angline-180:
+        # 如果 p0-p1 线段的角度为正，判断 pt 的角度是否在 p0-p1 线段的右侧
+        if angline > angpt > angline - 180:
             return True
     else:
+        # 如果 p0-p1 线段的角度为负，调整角度值，并判断 pt 的角度是否在右侧
         angline += 360
         if angpt < 0:
             angpt += 360
-        if angline > angpt > angline-180:
+        if angline > angpt > angline - 180:
             return True
 
 def rotate_pt(pt, ang, ctr):
@@ -359,12 +392,19 @@ def rotate_pt(pt, ang, ctr):
 
     This is a 3-step process:
     1. translate to place ctr at origin.
-    2. rotate about origin (CCW version of Paul Bourke's algorithm.
+    2. rotate about origin (CCW version of Paul Bourke's algorithm).
     3. apply inverse translation. """
+    # 计算点 pt 相对于中心点 ctr 的差值
     x, y = sub_pt(pt, ctr)
+
+    # 将角度从度数转换为弧度
     A = ang * math.pi / 180
+
+    # 通过旋转矩阵计算旋转后的坐标
     u = x * math.cos(A) - y * math.sin(A)
     v = y * math.cos(A) + x * math.sin(A)
+
+    # 将旋转后的坐标重新平移，使其相对于原来的中心点 ctr
     return add_pt((u, v), ctr)
     
 
